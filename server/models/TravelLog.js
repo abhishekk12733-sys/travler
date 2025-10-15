@@ -17,17 +17,29 @@ const TravelLogSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["public", "private", "visited", "wishlist", "dream"],
-    default: "private",
+    enum: ["visited", "wishlist", "ongoing"],
+    default: "visited",
   },
-  likes: {
-    type: Number,
-    default: 0,
+  isPublic: {
+    type: Boolean,
+    default: false,
   },
-  bookmarks: {
-    type: Number,
-    default: 0,
-  },
+  likes: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    },
+  ],
+  bookmarks: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    },
+  ],
   latitude: {
     type: Number,
   },
@@ -39,10 +51,21 @@ const TravelLogSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  groupTrip: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "GroupTrip",
+    default: null, // Optional: a travel log can exist outside a group trip
+  },
   date: {
     type: Date,
     default: Date.now,
   },
+  expenses: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Expense",
+    },
+  ],
 });
 
 module.exports = mongoose.model("TravelLog", TravelLogSchema);

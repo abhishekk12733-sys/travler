@@ -8,10 +8,40 @@ const TravelLog = require("../models/TravelLog");
 // @access  Public
 router.get("/public", async (req, res) => {
   try {
-    const logs = await TravelLog.find({ status: "public" }).sort({ date: -1 });
+    const logs = await TravelLog.find({ isPublic: true })
+      .populate("userId", "username") // Populate username from User model
+      .sort({ date: -1 });
     res.json(logs);
   } catch (err) {
     console.error(err.message);
+    res.status(500).send("Server Error");
+  }
+});
+
+router.get("/:id", auth, async (req, res) => {
+  try {
+    const log = await TravelLog.findById(req.params.id)
+      .populate("userId", "username")
+      .populate({
+        path: "expenses",
+        model: "Expense",
+      });
+
+    if (!log) {
+      return res.status(404).json({ msg: "Travel log not found" });
+    }
+
+    // If log is private, ensure user owns it
+    if (!log.isPublic && log.userId.toString() !== req.user.id) {
+      return res.status(401).json({ msg: "User not authorized" });
+    }
+
+    res.json(log);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === "ObjectId") {
+      return res.status(404).json({ msg: "Travel log not found" });
+    }
     res.status(500).send("Server Error");
   }
 });
@@ -35,8 +65,16 @@ router.get("/", auth, async (req, res) => {
 // @desc    Create new travel log
 // @access  Private
 router.post("/", auth, async (req, res) => {
-  const { title, destination, description, status, latitude, longitude } =
-    req.body;
+  const {
+    title,
+    destination,
+    description,
+    status,
+    latitude,
+    longitude,
+    isPublic,
+    groupTrip, // Add groupTrip here
+  } = req.body;
 
   try {
     const newLog = new TravelLog({
@@ -46,7 +84,9 @@ router.post("/", auth, async (req, res) => {
       status,
       latitude,
       longitude,
+      isPublic,
       userId: req.user.id,
+      groupTrip: groupTrip || null, // Assign groupTrip if provided
     });
 
     const log = await newLog.save();
@@ -61,8 +101,15 @@ router.post("/", auth, async (req, res) => {
 // @desc    Update travel log
 // @access  Private
 router.put("/:id", auth, async (req, res) => {
-  const { title, destination, description, status, latitude, longitude } =
-    req.body;
+  const {
+    title,
+    destination,
+    description,
+    status,
+    latitude,
+    longitude,
+    isPublic,
+  } = req.body;
 
   try {
     let log = await TravelLog.findById(req.params.id);
@@ -79,7 +126,15 @@ router.put("/:id", auth, async (req, res) => {
     log = await TravelLog.findByIdAndUpdate(
       req.params.id,
       {
-        $set: { title, destination, description, status, latitude, longitude },
+        $set: {
+          title,
+          destination,
+          description,
+          status,
+          latitude,
+          longitude,
+          isPublic,
+        },
       },
       { new: true }
     );
@@ -126,9 +181,15 @@ router.put("/like/:id", auth, async (req, res) => {
     if (!log) {
       return res.status(404).json({ msg: "Travel log not found" });
     }
-    log.likes++;
+
+    // Check if the log has already been liked by this user
+    if (log.likes.some((like) => like.user.toString() === req.user.id)) {
+      return res.status(400).json({ msg: "Travel log already liked" });
+    }
+
+    log.likes.unshift({ user: req.user.id });
     await log.save();
-    res.json(log);
+    res.json(log.likes);
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server Error");
@@ -145,11 +206,18 @@ router.put("/unlike/:id", auth, async (req, res) => {
     if (!log) {
       return res.status(404).json({ msg: "Travel log not found" });
     }
-    if (log.likes > 0) {
-      log.likes--;
+
+    // Check if the log has not yet been liked by this user
+    if (!log.likes.some((like) => like.user.toString() === req.user.id)) {
+      return res.status(400).json({ msg: "Travel log has not yet been liked" });
     }
+
+    // Remove the user from the likes array
+    log.likes = log.likes.filter(
+      (like) => like.user.toString() !== req.user.id
+    );
     await log.save();
-    res.json(log);
+    res.json(log.likes);
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server Error");
@@ -166,9 +234,17 @@ router.put("/bookmark/:id", auth, async (req, res) => {
     if (!log) {
       return res.status(404).json({ msg: "Travel log not found" });
     }
-    log.bookmarks++;
+
+    // Check if the log has already been bookmarked by this user
+    if (
+      log.bookmarks.some((bookmark) => bookmark.user.toString() === req.user.id)
+    ) {
+      return res.status(400).json({ msg: "Travel log already bookmarked" });
+    }
+
+    log.bookmarks.unshift({ user: req.user.id });
     await log.save();
-    res.json(log);
+    res.json(log.bookmarks);
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server Error");
@@ -185,11 +261,24 @@ router.put("/unbookmark/:id", auth, async (req, res) => {
     if (!log) {
       return res.status(404).json({ msg: "Travel log not found" });
     }
-    if (log.bookmarks > 0) {
-      log.bookmarks--;
+
+    // Check if the log has not yet been bookmarked by this user
+    if (
+      !log.bookmarks.some(
+        (bookmark) => bookmark.user.toString() === req.user.id
+      )
+    ) {
+      return res
+        .status(400)
+        .json({ msg: "Travel log has not yet been bookmarked" });
     }
+
+    // Remove the user from the bookmarks array
+    log.bookmarks = log.bookmarks.filter(
+      (bookmark) => bookmark.user.toString() !== req.user.id
+    );
     await log.save();
-    res.json(log);
+    res.json(log.bookmarks);
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server Error");

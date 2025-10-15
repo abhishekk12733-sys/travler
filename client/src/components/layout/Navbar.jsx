@@ -1,7 +1,6 @@
 import { useAuth } from "../../contexts/AuthContext";
 import {
   Globe,
-  Map,
   Calendar,
   Users,
   Sparkles,
@@ -10,6 +9,7 @@ import {
   Menu,
   X,
   Home,
+  DollarSign,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -28,15 +28,20 @@ export default function Navbar() {
   const navItems = [
     { id: "home", label: "Home", icon: Home, path: "/" },
     { id: "my-logs", label: "My Travels", icon: Globe, path: "/my-logs" },
-    { id: "map", label: "World Map", icon: Map, path: "/map" },
     { id: "calendar", label: "Calendar", icon: Calendar, path: "/calendar" },
-    { id: "community", label: "Community", icon: Users, path: "/community" },
+    {
+      id: "group-trips",
+      label: "Group Trips",
+      icon: Users,
+      path: "/group-trips",
+    },
     {
       id: "ai-assistant",
       label: "AI Assistant",
       icon: Sparkles,
       path: "/ai-assistant",
     },
+    { id: "expenses", label: "Expenses", icon: DollarSign, path: "/expenses" },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -143,6 +148,14 @@ export default function Navbar() {
               >
                 <User className="w-5 h-5" />
                 <span>Profile</span>
+              </Link>
+              <Link
+                to="/expenses"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg font-medium text-gray-600 hover:bg-gray-50 transition"
+              >
+                <DollarSign className="w-5 h-5" />
+                <span>Expenses</span>
               </Link>
               <button
                 onClick={handleSignOut}

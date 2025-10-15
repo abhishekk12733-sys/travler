@@ -20,12 +20,16 @@ const authRoutes = require("./routes/auth");
 const aiAssistantRoutes = require("./routes/aiAssistant");
 const calendarEventsRoutes = require("./routes/calendarEvents");
 const travelLogsRoutes = require("./routes/travelLogs");
+const expensesRoutes = require("./routes/expenses");
+const groupTripsRoutes = require("./routes/groupTrips");
 
 // Use routes
 app.use("/api/auth", authRoutes);
 app.use("/api/ai-assistant", aiAssistantRoutes);
 app.use("/api/calendarEvents", calendarEventsRoutes);
 app.use("/api/travelLogs", travelLogsRoutes);
+app.use("/api/expenses", expensesRoutes);
+app.use("/api/groupTrips", groupTripsRoutes);
 
 app.get("/", (req, res) => {
   res.send("Server is running!");

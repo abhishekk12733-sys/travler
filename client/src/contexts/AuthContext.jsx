@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import axios from "axios";
+import api from "../utils/api";
 
-const AuthContext = createContext({});
+export const AuthContext = createContext({});
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -21,20 +21,18 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem("token");
       if (token) {
         try {
-          // In a real app, you'd verify the token with the backend
-          // For now, we'll just assume it's valid and decode it
-          const decoded = JSON.parse(atob(token.split(".")[1])); // Basic decode for client-side
-          setUser({
-            id: decoded.user.id,
-            username: decoded.user.username,
-            email: decoded.user.email,
-          });
+          const res = await api.get("/auth");
+          setUser(res.data);
         } catch (error) {
-          console.error("Failed to decode token:", error);
+          console.error("Failed to verify token with backend:", error);
           localStorage.removeItem("token");
+          setUser(null);
+        } finally {
+          setLoading(false);
         }
+      } else {
+        setLoading(false); // If no token, stop loading immediately
       }
-      setLoading(false);
     };
     loadUser();
   }, []);
@@ -47,14 +45,15 @@ export const AuthProvider = ({ children }) => {
 
   const signUp = async (username, email, password) => {
     try {
-      const res = await axios.post("/api/auth/signup", {
+      const res = await api.post("/auth/signup", {
         username,
         email,
         password,
       });
       localStorage.setItem("token", res.data.token);
-      const decoded = JSON.parse(atob(res.data.token.split(".")[1]));
-      setUser({ id: decoded.user.id, username, email });
+      // After successful signup, immediately verify the token with the backend
+      const userRes = await api.get("/auth");
+      setUser(userRes.data);
       return { data: res.data, error: null };
     } catch (error) {
       console.error("Signup error:", error.response?.data || error.message);
@@ -64,10 +63,11 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (email, password) => {
     try {
-      const res = await axios.post("/api/auth/login", { email, password });
+      const res = await api.post("/auth/login", { email, password });
       localStorage.setItem("token", res.data.token);
-      const decoded = JSON.parse(atob(res.data.token.split(".")[1]));
-      setUser({ id: decoded.user.id, email }); // Username might not be in login token
+      // After successful login, immediately verify the token with the backend
+      const userRes = await api.get("/auth");
+      setUser(userRes.data);
       return { data: res.data, error: null };
     } catch (error) {
       console.error("Login error:", error.response?.data || error.message);

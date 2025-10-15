@@ -11,11 +11,12 @@ export default function TravelLogForm({ log, onClose, onSaveSuccess }) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    destination: "", // Changed from 'location'
+    destination: "",
     date: "",
     latitude: "",
     longitude: "",
-    status: "visited", // Default status
+    status: "visited",
+    isPublic: false, // Default to private
   });
 
   useEffect(() => {
@@ -23,11 +24,12 @@ export default function TravelLogForm({ log, onClose, onSaveSuccess }) {
       setFormData({
         title: log.title || "",
         description: log.description || "",
-        destination: log.destination || "", // Changed from 'location'
+        destination: log.destination || "",
         date: log.date ? new Date(log.date).toISOString().split("T")[0] : "",
         latitude: log.latitude || "",
         longitude: log.longitude || "",
         status: log.status || "visited",
+        isPublic: log.isPublic || false,
       });
     }
   }, [log]);
@@ -61,6 +63,7 @@ export default function TravelLogForm({ log, onClose, onSaveSuccess }) {
         latitude: formData.latitude,
         longitude: formData.longitude,
         date: formData.date,
+        isPublic: formData.isPublic,
       };
 
       if (log) {
@@ -83,10 +86,10 @@ export default function TravelLogForm({ log, onClose, onSaveSuccess }) {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target; // Removed type and checked as is_public is removed
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -226,14 +229,26 @@ export default function TravelLogForm({ log, onClose, onSaveSuccess }) {
             >
               <option value="visited">Visited</option>
               <option value="wishlist">Wishlist</option>
-              <option value="dream">Dream Destination</option>
-              <option value="public">Public</option> {/* Added public status */}
-              <option value="private">Private</option>{" "}
-              {/* Added private status */}
+              <option value="ongoing">Ongoing</option>
             </select>
           </div>
 
-          {/* Removed is_public checkbox */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="isPublic"
+              id="isPublic"
+              checked={formData.isPublic}
+              onChange={handleChange}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label
+              htmlFor="isPublic"
+              className="ml-2 block text-sm text-gray-900"
+            >
+              Share to Community Feed (Public)
+            </label>
+          </div>
 
           <div className="flex space-x-4 pt-4">
             <button

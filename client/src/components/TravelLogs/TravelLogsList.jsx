@@ -113,7 +113,7 @@ export default function TravelLogsList() {
     { id: "all", label: "All Travels" },
     { id: "visited", label: "Visited" },
     { id: "wishlist", label: "Wishlist" },
-    { id: "dream", label: "Dream Destinations" },
+    { id: "ongoing", label: "ongoing" },
   ];
 
   if (viewingLog) {
@@ -230,7 +230,7 @@ export default function TravelLogsList() {
                       ? "Visited"
                       : log.status === "wishlist"
                       ? "Wishlist"
-                      : "Dream"}
+                      : "ongoing"}
                   </span>
                 </div>
               </div>
