@@ -9,6 +9,7 @@ import {
   CreditCard as Edit2,
   Trash2,
   Eye,
+  UserPlus,
 } from "lucide-react";
 import TravelLogForm from "./TravelLogForm";
 import TravelLogDetail from "./TravelLogDetail";
@@ -266,6 +267,16 @@ export default function TravelLogsList() {
                     className="flex items-center justify-center px-3 py-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition"
                   >
                     <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent card navigation
+                      window.location.href = `/travel-logs/${log._id}?addMember=true`;
+                    }}
+                    className="flex items-center justify-center px-3 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition"
+                    title="Add Member"
+                  >
+                    <UserPlus className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(log._id)}

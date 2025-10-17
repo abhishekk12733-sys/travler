@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Globe, Plus, Map, Calendar, Users, Sparkles } from "lucide-react";
+import { Globe, Plus, Map, Users, Sparkles, Waypoints } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -44,15 +44,18 @@ export default function HomePage() {
               Visualize your travels on a dynamic world map.
             </p>
           </div>
-          <div className="bg-white rounded-xl shadow-md p-6 flex flex-col items-center text-center transform hover:scale-105 transition duration-300">
-            <Calendar className="w-12 h-12 text-green-500 mb-4" />
+          <Link
+            to="/group-trips"
+            className="bg-white rounded-xl shadow-md p-6 flex flex-col items-center text-center transform hover:scale-105 transition duration-300"
+          >
+            <Waypoints className="w-12 h-12 text-green-500 mb-4" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">
-              Travel Calendar
+              Group Trips
             </h3>
             <p className="text-gray-600">
-              Keep track of past and future trips with ease.
+              Collaborate on trips, manage expenses, and share documents.
             </p>
-          </div>
+          </Link>
           <div className="bg-white rounded-xl shadow-md p-6 flex flex-col items-center text-center transform hover:scale-105 transition duration-300">
             <Sparkles className="w-12 h-12 text-purple-500 mb-4" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">

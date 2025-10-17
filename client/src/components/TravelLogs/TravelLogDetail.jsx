@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { X, MapPin, Calendar } from "lucide-react";
+import { useParams, useLocation } from "react-router-dom"; // Import useParams and useLocation
+import { X, MapPin, Calendar, UserPlus, XCircle } from "lucide-react"; // Import UserPlus and XCircle
 import api from "../../utils/api";
 import { useAuth } from "../../contexts/AuthContext";
 
 export default function TravelLogDetail({ log: initialLog, onClose }) {
   const { user, loading: authLoading } = useAuth();
+  const { id } = useParams(); // Get id from URL params
+  const location = useLocation(); // Get location object for query params
   const [log, setLog] = useState(initialLog);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAddMemberForm, setShowAddMemberForm] = useState(false); // State for add member form
+  const [newMemberIdentifier, setNewMemberIdentifier] = useState(""); // State for new member input
 
   useEffect(() => {
     const fetchLogDetails = async () => {
@@ -19,7 +24,8 @@ export default function TravelLogDetail({ log: initialLog, onClose }) {
 
       try {
         setLoading(true);
-        const res = await api.get(`/travelLogs/${initialLog._id}`);
+        const logId = initialLog?._id || id; // Use id from params if initialLog is not available
+        const res = await api.get(`/travelLogs/${logId}`);
         setLog(res.data);
         setLoading(false);
       } catch (err) {
@@ -32,13 +38,78 @@ export default function TravelLogDetail({ log: initialLog, onClose }) {
       }
     };
 
-    if (initialLog && initialLog._id && !authLoading) {
+    if ((initialLog && initialLog._id) || (id && !authLoading)) {
+      // Check for initialLog or id from params
       fetchLogDetails();
     } else if (!authLoading && !user) {
       setError("You must be logged in to view travel log details.");
       setLoading(false);
     }
-  }, [initialLog, user, authLoading]); // Added authLoading to dependency array
+
+    // Check for addMember query parameter
+    const queryParams = new URLSearchParams(location.search);
+    if (queryParams.get("addMember") === "true") {
+      setShowAddMemberForm(true);
+    }
+  }, [initialLog, user, authLoading, id, location.search]);
+
+  const loadLogDetails = async () => {
+    if (!user) {
+      setError("You must be logged in to view travel log details.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const logId = initialLog?._id || id;
+      const res = await api.get(`/travelLogs/${logId}`);
+      setLog(res.data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching travel log details:", err);
+      setError(
+        "Failed to load travel log details. " +
+          (err.response?.data?.msg || err.message)
+      );
+      setLoading(false);
+    }
+  };
+
+  const handleAddMember = async (e) => {
+    e.preventDefault();
+    setError(null);
+    if (!newMemberIdentifier.trim()) {
+      setError("Please enter a username or email.");
+      return;
+    }
+    try {
+      const logId = initialLog?._id || id;
+      await api.post(`/travelLogs/${logId}/members`, {
+        members: [newMemberIdentifier.trim()],
+      });
+      setNewMemberIdentifier("");
+      setShowAddMemberForm(false);
+      loadLogDetails(); // Reload log to show new member
+    } catch (err) {
+      setError(err.response?.data?.msg || "Failed to add member.");
+      console.error("Error adding member:", err);
+    }
+  };
+
+  const handleRemoveMember = async (memberId) => {
+    if (window.confirm("Are you sure you want to remove this member?")) {
+      setError(null);
+      try {
+        const logId = initialLog?._id || id;
+        await api.delete(`/travelLogs/${logId}/members/${memberId}`);
+        loadLogDetails(); // Reload log to reflect changes
+      } catch (err) {
+        setError(err.response?.data?.msg || "Failed to remove member.");
+        console.error("Error removing member:", err);
+      }
+    }
+  };
 
   if (authLoading || loading) {
     return (
@@ -167,7 +238,71 @@ export default function TravelLogDetail({ log: initialLog, onClose }) {
             </div>
           )}
 
-          <div className="flex space-x-4 pt-4 border-t border-gray-200">
+          <div className="mt-8 border-t border-gray-200 pt-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Members</h2>
+              {user &&
+                log.userId._id === user.id && ( // Only owner can add members
+                  <button
+                    onClick={() => setShowAddMemberForm(!showAddMemberForm)}
+                    className="flex items-center px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition"
+                  >
+                    <UserPlus className="w-4 h-4 mr-1" /> Add Member
+                  </button>
+                )}
+            </div>
+
+            {showAddMemberForm && (
+              <form onSubmit={handleAddMember} className="flex space-x-2 mb-4">
+                <input
+                  type="text"
+                  value={newMemberIdentifier}
+                  onChange={(e) => setNewMemberIdentifier(e.target.value)}
+                  placeholder="Username or Email"
+                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded-md shadow-sm hover:bg-green-700 transition"
+                >
+                  Add
+                </button>
+              </form>
+            )}
+
+            <ul className="space-y-2">
+              {log.members && log.members.length > 0 ? (
+                log.members.map((member) => (
+                  <li
+                    key={member._id}
+                    className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <UserPlus className="w-5 h-5 text-gray-500" />
+                      <span className="font-medium text-gray-800">
+                        {member.username}{" "}
+                        {member._id === log.userId._id && "(Owner)"}
+                      </span>
+                    </div>
+                    {user &&
+                      log.userId._id === user.id &&
+                      member._id !== log.userId._id && (
+                        <button
+                          onClick={() => handleRemoveMember(member._id)}
+                          className="px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600 transition"
+                        >
+                          Remove
+                        </button>
+                      )}
+                  </li>
+                ))
+              ) : (
+                <p className="text-gray-600">No members added yet.</p>
+              )}
+            </ul>
+          </div>
+
+          <div className="flex space-x-4 pt-4 border-t border-gray-200 mt-8">
             <button
               onClick={onClose}
               className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition"

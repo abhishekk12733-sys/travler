@@ -10,6 +10,26 @@ export const createGroupTrip = async (tripData) => {
   }
 };
 
+// Add an itinerary item to a group trip
+export const addItineraryItem = async (tripId, itemData) => {
+  try {
+    const res = await api.post(`/groupTrips/${tripId}/itinerary`, itemData);
+    return res.data;
+  } catch (err) {
+    throw err.response.data;
+  }
+};
+
+// Add an expense to a group trip
+export const addGroupTripExpense = async (tripId, expenseData) => {
+  try {
+    const res = await api.post(`/groupTrips/${tripId}/expenses`, expenseData);
+    return res.data;
+  } catch (err) {
+    throw err.response.data;
+  }
+};
+
 // Get all group trips for the authenticated user
 export const getGroupTrips = async () => {
   try {
@@ -54,6 +74,20 @@ export const deleteGroupTrip = async (id) => {
 export const addGroupTripMembers = async (id, newMembers) => {
   try {
     const res = await api.put(`/groupTrips/${id}/members`, { newMembers });
+    return res.data;
+  } catch (err) {
+    throw err.response.data;
+  }
+};
+
+// Upload a document to a group trip
+export const uploadGroupTripDocument = async (tripId, formData) => {
+  try {
+    const res = await api.post(`/groupTrips/${tripId}/documents`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return res.data;
   } catch (err) {
     throw err.response.data;

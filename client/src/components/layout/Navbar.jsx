@@ -1,7 +1,6 @@
 import { useAuth } from "../../contexts/AuthContext";
 import {
   Globe,
-  Calendar,
   Users,
   Sparkles,
   LogOut,
@@ -28,12 +27,11 @@ export default function Navbar() {
   const navItems = [
     { id: "home", label: "Home", icon: Home, path: "/" },
     { id: "my-logs", label: "My Travels", icon: Globe, path: "/my-logs" },
-    { id: "calendar", label: "Calendar", icon: Calendar, path: "/calendar" },
     {
-      id: "group-trips",
-      label: "Group Trips",
-      icon: Users,
-      path: "/group-trips",
+      id: "add-member",
+      label: "Add Member",
+      icon: Users, // Keeping Users icon for now, can be changed if a more suitable icon is found
+      path: "/add-member", // New path for the Add Member functionality
     },
     {
       id: "ai-assistant",
@@ -42,6 +40,12 @@ export default function Navbar() {
       path: "/ai-assistant",
     },
     { id: "expenses", label: "Expenses", icon: DollarSign, path: "/expenses" },
+    {
+      id: "group-trips",
+      label: "Collaborative Trip Planning & Documentation",
+      icon: Users, // Using Users icon for now, can be changed if a more suitable icon is found
+      path: "/group-trips",
+    },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -149,13 +153,31 @@ export default function Navbar() {
                 <User className="w-5 h-5" />
                 <span>Profile</span>
               </Link>
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.id}
+                    to={item.path}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition ${
+                      isActive(item.path)
+                        ? "bg-blue-50 text-blue-600"
+                        : "text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
               <Link
-                to="/expenses"
+                to="/profile"
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg font-medium text-gray-600 hover:bg-gray-50 transition"
               >
-                <DollarSign className="w-5 h-5" />
-                <span>Expenses</span>
+                <User className="w-5 h-5" />
+                <span>Profile</span>
               </Link>
               <button
                 onClick={handleSignOut}

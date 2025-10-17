@@ -10,13 +10,13 @@ import LoginForm from "./components/Auth/LoginForm";
 import SignupForm from "./components/Auth/SignupForm";
 import Navbar from "./components/Layout/Navbar";
 import TravelLogsList from "./components/TravelLogs/TravelLogsList";
-import CalendarView from "./components/Calendar/CalendarView";
 import AIAssistant from "./components/AIAssistant/AIAssistant";
 import ProfileView from "./components/Profile/ProfileView";
 import HomePage from "./pages/HomePage"; // Assuming you have a HomePage component
 import ExpensesPage from "./pages/ExpensesPage";
 import GroupTripsPage from "./pages/GroupTripsPage";
 import GroupTripDetailPage from "./pages/GroupTripDetailPage";
+import AddMemberForm from "./components/AddMemberForm"; // Import the new component
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -43,10 +43,11 @@ function AuthenticatedApp() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/my-logs" element={<TravelLogsList />} />
-          <Route path="/calendar" element={<CalendarView />} />
           <Route path="/ai-assistant" element={<AIAssistant />} />
           <Route path="/profile" element={<ProfileView />} />
           <Route path="/expenses" element={<ExpensesPage />} />
+          <Route path="/add-member" element={<AddMemberForm />} />{" "}
+          {/* New route for Add Member */}
           <Route path="/group-trips" element={<GroupTripsPage />} />
           <Route path="/group-trips/:id" element={<GroupTripDetailPage />} />
           <Route path="*" element={<Navigate to="/" />} />

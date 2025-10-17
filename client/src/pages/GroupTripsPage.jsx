@@ -3,6 +3,9 @@ import { getGroupTrips, createGroupTrip } from "../utils/groupTripApi";
 import { useAuth } from "../contexts/AuthContext";
 import { PlusCircle, Users, Calendar, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
+import DocumentUpload from "../components/GroupTrips/DocumentUpload";
+import PlaceToVisitForm from "../components/GroupTrips/PlaceToVisitForm";
+import ExpenseForm from "../components/GroupTrips/ExpenseForm";
 
 export default function GroupTripsPage() {
   const { user } = useAuth();
@@ -17,6 +20,8 @@ export default function GroupTripsPage() {
     endDate: "",
     members: "", // Comma-separated usernames/emails
   });
+  const [activeTab, setActiveTab] = useState("expenses"); // New state for active tab
+  const [selectedTripId, setSelectedTripId] = useState(null); // New state for selected trip
 
   useEffect(() => {
     if (user) {
@@ -26,6 +31,12 @@ export default function GroupTripsPage() {
       setError("Please log in to view group trips.");
     }
   }, [user]);
+
+  useEffect(() => {
+    if (groupTrips.length > 0 && !selectedTripId) {
+      setSelectedTripId(groupTrips[0]._id); // Automatically select the first trip
+    }
+  }, [groupTrips, selectedTripId]);
 
   const loadGroupTrips = async () => {
     setLoading(true);
@@ -92,20 +103,22 @@ export default function GroupTripsPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900">Group Trips</h2>
+        <h2 className="text-3xl font-bold text-gray-900">
+          Collaborative Trip Planning & Documentation
+        </h2>
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition"
         >
           <PlusCircle className="w-5 h-5 mr-2" />
-          New Group Trip
+          New Collaborative Trip
         </button>
       </div>
 
       {showCreateForm && (
         <div className="bg-white p-6 rounded-lg shadow-md mb-8">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">
-            Create New Group Trip
+            Create New Collaborative Trip
           </h3>
           <form onSubmit={handleCreateTrip} className="space-y-4">
             <div>
@@ -202,11 +215,85 @@ export default function GroupTripsPage() {
         </div>
       )}
 
+      {groupTrips.length > 0 && (
+        <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">
+            Select a Trip to Manage
+          </h3>
+          <select
+            value={selectedTripId || ""}
+            onChange={(e) => setSelectedTripId(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 mb-6"
+          >
+            <option value="" disabled>
+              Select a trip
+            </option>
+            {groupTrips.map((trip) => (
+              <option key={trip._id} value={trip._id}>
+                {trip.name}
+              </option>
+            ))}
+          </select>
+
+          {selectedTripId && (
+            <>
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                Manage Trip Details
+              </h3>
+              <div className="flex border-b border-gray-200 mb-4">
+                <button
+                  onClick={() => setActiveTab("expenses")}
+                  className={`py-2 px-4 text-sm font-medium ${
+                    activeTab === "expenses"
+                      ? "border-b-2 border-blue-600 text-blue-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Add Expenses
+                </button>
+                <button
+                  onClick={() => setActiveTab("documents")}
+                  className={`py-2 px-4 text-sm font-medium ${
+                    activeTab === "documents"
+                      ? "border-b-2 border-blue-600 text-blue-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Upload Documents
+                </button>
+                <button
+                  onClick={() => setActiveTab("places")}
+                  className={`py-2 px-4 text-sm font-medium ${
+                    activeTab === "places"
+                      ? "border-b-2 border-blue-600 text-blue-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Add Places to Visit
+                </button>
+              </div>
+
+              <div>
+                {activeTab === "expenses" && (
+                  <ExpenseForm selectedTripId={selectedTripId} />
+                )}
+                {activeTab === "documents" && (
+                  <DocumentUpload selectedTripId={selectedTripId} />
+                )}
+                {activeTab === "places" && (
+                  <PlaceToVisitForm selectedTripId={selectedTripId} />
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       {groupTrips.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow">
           <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            No group trips yet
+            No collaborative trips yet
           </h3>
           <p className="text-gray-600">
             Start planning your next adventure with friends!

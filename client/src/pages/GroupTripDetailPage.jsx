@@ -5,6 +5,8 @@ import {
   addGroupTripMembers,
   removeGroupTripMember,
   deleteGroupTrip,
+  addItineraryItem,
+  addGroupTripExpense,
 } from "../utils/groupTripApi";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -15,7 +17,13 @@ import {
   UserPlus,
   XCircle,
   Edit,
+  PlusCircle,
+  FileText,
+  Image,
 } from "lucide-react";
+import DocumentUpload from "../components/GroupTrips/DocumentUpload";
+import PlaceToVisitForm from "../components/GroupTrips/PlaceToVisitForm";
+import ExpenseForm from "../components/GroupTrips/ExpenseForm"; // Import the new ExpenseForm
 
 export default function GroupTripDetailPage() {
   const { id } = useParams();
@@ -25,6 +33,11 @@ export default function GroupTripDetailPage() {
   const [error, setError] = useState(null);
   const [showAddMemberForm, setShowAddMemberForm] = useState(false);
   const [newMemberIdentifier, setNewMemberIdentifier] = useState("");
+  const [showAddPlaceForm, setShowAddPlaceForm] = useState(false);
+  const [showAddExpenseForm, setShowAddExpenseForm] = useState(false); // New state for expense form
+  const [itineraryItems, setItineraryItems] = useState([]);
+  const [documents, setDocuments] = useState([]);
+  const [expenses, setExpenses] = useState([]); // New state for expenses
 
   useEffect(() => {
     if (user) {
@@ -41,12 +54,51 @@ export default function GroupTripDetailPage() {
     try {
       const data = await getGroupTripById(id);
       setGroupTrip(data);
+      setItineraryItems(data.itinerary || []);
+      setDocuments(data.documents || []);
+      setExpenses(data.expenses || []); // Initialize expenses
     } catch (err) {
       setError(err.msg || "Failed to load group trip details.");
       console.error("Error loading group trip:", err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddPlace = async (newPlace) => {
+    try {
+      await addItineraryItem(id, newPlace);
+      setShowAddPlaceForm(false);
+      loadGroupTrip(); // Reload to get updated itinerary from server
+    } catch (err) {
+      setError(err.msg || "Failed to add place to itinerary.");
+      console.error("Error adding place:", err);
+    }
+  };
+
+  const handleAddExpense = async (newExpense) => {
+    try {
+      await addGroupTripExpense(id, newExpense);
+      setShowAddExpenseForm(false);
+      loadGroupTrip(); // Reload to get updated expenses from server
+    } catch (err) {
+      setError(err.msg || "Failed to add expense.");
+      console.error("Error adding expense:", err);
+    }
+  };
+
+  const handleDocumentAdded = () => {
+    loadGroupTrip(); // Reload documents after upload/delete
+  };
+
+  const getFileIcon = (fileType) => {
+    if (fileType.startsWith("image")) {
+      return <Image className="w-5 h-5 text-blue-500" />;
+    }
+    if (fileType.includes("pdf")) {
+      return <FileText className="w-5 h-5 text-red-500" />;
+    }
+    return <FileText className="w-5 h-5 text-gray-500" />;
   };
 
   const handleAddMember = async (e) => {
@@ -237,13 +289,31 @@ export default function GroupTripDetailPage() {
 
         {/* Future sections for Itinerary, Shared Travel Logs, Shared Expenses */}
         <div className="mt-8 border-t border-gray-200 pt-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">
-            Itinerary
-          </h3>
-          {groupTrip.itinerary && groupTrip.itinerary.length > 0 ? (
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-semibold text-gray-800">Itinerary</h3>
+            {isCreator && (
+              <button
+                onClick={() => setShowAddPlaceForm(!showAddPlaceForm)}
+                className="flex items-center px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition"
+              >
+                <PlusCircle className="w-4 h-4 mr-1" /> Add Place
+              </button>
+            )}
+          </div>
+
+          {showAddPlaceForm && (
+            <div className="mb-6">
+              <PlaceToVisitForm onAddPlace={handleAddPlace} />
+            </div>
+          )}
+
+          {itineraryItems && itineraryItems.length > 0 ? (
             <ul className="space-y-3">
-              {groupTrip.itinerary.map((item, index) => (
-                <li key={index} className="bg-gray-50 p-4 rounded-md">
+              {itineraryItems.map((item, index) => (
+                <li
+                  key={item._id || index}
+                  className="bg-gray-50 p-4 rounded-md"
+                >
                   <p className="font-semibold text-gray-900">{item.name}</p>
                   <p className="text-sm text-gray-600">
                     <Calendar className="inline-block w-4 h-4 mr-1" />
@@ -266,6 +336,47 @@ export default function GroupTripDetailPage() {
             </ul>
           ) : (
             <p className="text-gray-600">No itinerary items planned yet.</p>
+          )}
+        </div>
+
+        <div className="mt-8 border-t border-gray-200 pt-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-semibold text-gray-800">Expenses</h3>
+            {isCreator && (
+              <button
+                onClick={() => setShowAddExpenseForm(!showAddExpenseForm)}
+                className="flex items-center px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition"
+              >
+                <PlusCircle className="w-4 h-4 mr-1" /> Add Expense
+              </button>
+            )}
+          </div>
+
+          {showAddExpenseForm && (
+            <div className="mb-6">
+              <ExpenseForm onAddExpense={handleAddExpense} />
+            </div>
+          )}
+
+          {expenses && expenses.length > 0 ? (
+            <ul className="space-y-3">
+              {expenses.map((expense, index) => (
+                <li
+                  key={expense._id || index}
+                  className="bg-gray-50 p-4 rounded-md"
+                >
+                  <p className="font-semibold text-gray-900">
+                    {expense.description}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Amount: ${expense.amount.toFixed(2)} | Category:{" "}
+                    {expense.category}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-600">No expenses added yet.</p>
           )}
         </div>
 
@@ -294,28 +405,11 @@ export default function GroupTripDetailPage() {
         </div>
 
         <div className="mt-8 border-t border-gray-200 pt-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">
-            Shared Expenses
-          </h3>
-          {groupTrip.sharedExpenses && groupTrip.sharedExpenses.length > 0 ? (
-            <ul className="space-y-3">
-              {groupTrip.sharedExpenses.map((expense) => (
-                <li key={expense._id} className="bg-gray-50 p-4 rounded-md">
-                  <Link
-                    to={`/expenses/${expense._id}`}
-                    className="text-blue-600 hover:underline font-semibold"
-                  >
-                    {expense.description}
-                  </Link>
-                  <p className="text-sm text-gray-600">
-                    Amount: ${expense.amount}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-600">No shared expenses yet.</p>
-          )}
+          <DocumentUpload
+            selectedTripId={groupTrip._id}
+            onDocumentAdded={handleDocumentAdded}
+            documents={documents}
+          />
         </div>
       </div>
     </div>

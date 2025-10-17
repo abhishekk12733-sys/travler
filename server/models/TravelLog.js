@@ -51,6 +51,12 @@ const TravelLogSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  members: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
   groupTrip: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "GroupTrip",

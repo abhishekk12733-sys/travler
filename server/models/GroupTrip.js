@@ -37,6 +37,15 @@ const GroupTripSchema = new mongoose.Schema({
       // Potentially add more fields like time, participants, etc.
     },
   ],
+  expenses: [
+    {
+      description: { type: String, required: true },
+      amount: { type: Number, required: true },
+      category: { type: String },
+      addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      date: { type: Date, default: Date.now },
+    },
+  ],
   sharedExpenses: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -47,6 +56,15 @@ const GroupTripSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "TravelLog",
+    },
+  ],
+  documents: [
+    {
+      name: { type: String, required: true },
+      url: { type: String, required: true },
+      fileType: { type: String }, // e.g., 'image', 'pdf'
+      uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      uploadDate: { type: Date, default: Date.now },
     },
   ],
   createdAt: {
