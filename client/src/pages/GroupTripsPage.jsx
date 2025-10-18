@@ -259,7 +259,7 @@ export default function GroupTripsPage() {
                       : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
-                  Upload Documents
+                  Upload document
                 </button>
                 <button
                   onClick={() => setActiveTab("places")}

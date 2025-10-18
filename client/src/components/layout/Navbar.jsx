@@ -28,12 +28,6 @@ export default function Navbar() {
     { id: "home", label: "Home", icon: Home, path: "/" },
     { id: "my-logs", label: "My Travels", icon: Globe, path: "/my-logs" },
     {
-      id: "add-member",
-      label: "Add Member",
-      icon: Users, // Keeping Users icon for now, can be changed if a more suitable icon is found
-      path: "/add-member", // New path for the Add Member functionality
-    },
-    {
       id: "ai-assistant",
       label: "AI Assistant",
       icon: Sparkles,
@@ -42,9 +36,15 @@ export default function Navbar() {
     { id: "expenses", label: "Expenses", icon: DollarSign, path: "/expenses" },
     {
       id: "group-trips",
-      label: "Collaborative Trip Planning & Documentation",
+      label: "Trip Planning",
       icon: Users, // Using Users icon for now, can be changed if a more suitable icon is found
       path: "/group-trips",
+    },
+    {
+      id: "add-member",
+      label: "Add Member",
+      icon: Users, // Keeping Users icon for now, can be changed if a more suitable icon is found
+      path: "/add-member", // New path for the Add Member functionality
     },
   ];
 

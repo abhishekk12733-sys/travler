@@ -51,7 +51,7 @@ export default function DocumentUpload({ selectedTripId }) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h3 className="text-xl font-semibold text-gray-800 mb-4">
-        Upload Trip Documents
+        Upload document
       </h3>
 
       {/* Document Upload Form */}

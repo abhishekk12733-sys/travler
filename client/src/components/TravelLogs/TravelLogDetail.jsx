@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useLocation } from "react-router-dom"; // Import useParams and useLocation
+import { useParams, useLocation, useNavigate } from "react-router-dom"; // Import useParams, useLocation, and useNavigate
 import { X, MapPin, Calendar, UserPlus, XCircle } from "lucide-react"; // Import UserPlus and XCircle
 import api from "../../utils/api";
 import { useAuth } from "../../contexts/AuthContext";
+import AddMemberForm from "../AddMemberForm"; // Import AddMemberForm
 
 export default function TravelLogDetail({ log: initialLog, onClose }) {
   const { user, loading: authLoading } = useAuth();
   const { id } = useParams(); // Get id from URL params
   const location = useLocation(); // Get location object for query params
+  const navigate = useNavigate(); // Initialize useNavigate
   const [log, setLog] = useState(initialLog);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showAddMemberForm, setShowAddMemberForm] = useState(false); // State for add member form
-  const [newMemberIdentifier, setNewMemberIdentifier] = useState(""); // State for new member input
 
   useEffect(() => {
     const fetchLogDetails = async () => {
@@ -45,12 +45,6 @@ export default function TravelLogDetail({ log: initialLog, onClose }) {
       setError("You must be logged in to view travel log details.");
       setLoading(false);
     }
-
-    // Check for addMember query parameter
-    const queryParams = new URLSearchParams(location.search);
-    if (queryParams.get("addMember") === "true") {
-      setShowAddMemberForm(true);
-    }
   }, [initialLog, user, authLoading, id, location.search]);
 
   const loadLogDetails = async () => {
@@ -73,27 +67,6 @@ export default function TravelLogDetail({ log: initialLog, onClose }) {
           (err.response?.data?.msg || err.message)
       );
       setLoading(false);
-    }
-  };
-
-  const handleAddMember = async (e) => {
-    e.preventDefault();
-    setError(null);
-    if (!newMemberIdentifier.trim()) {
-      setError("Please enter a username or email.");
-      return;
-    }
-    try {
-      const logId = initialLog?._id || id;
-      await api.post(`/travelLogs/${logId}/members`, {
-        members: [newMemberIdentifier.trim()],
-      });
-      setNewMemberIdentifier("");
-      setShowAddMemberForm(false);
-      loadLogDetails(); // Reload log to show new member
-    } catch (err) {
-      setError(err.response?.data?.msg || "Failed to add member.");
-      console.error("Error adding member:", err);
     }
   };
 
@@ -244,31 +217,13 @@ export default function TravelLogDetail({ log: initialLog, onClose }) {
               {user &&
                 log.userId._id === user.id && ( // Only owner can add members
                   <button
-                    onClick={() => setShowAddMemberForm(!showAddMemberForm)}
+                    onClick={() => navigate("/add-member")} // Navigate to add-member page
                     className="flex items-center px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 transition"
                   >
                     <UserPlus className="w-4 h-4 mr-1" /> Add Member
                   </button>
                 )}
             </div>
-
-            {showAddMemberForm && (
-              <form onSubmit={handleAddMember} className="flex space-x-2 mb-4">
-                <input
-                  type="text"
-                  value={newMemberIdentifier}
-                  onChange={(e) => setNewMemberIdentifier(e.target.value)}
-                  placeholder="Username or Email"
-                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-green-600 text-white rounded-md shadow-sm hover:bg-green-700 transition"
-                >
-                  Add
-                </button>
-              </form>
-            )}
 
             <ul className="space-y-2">
               {log.members && log.members.length > 0 ? (

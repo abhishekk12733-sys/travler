@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { PlusCircle } from "lucide-react";
-import { addItineraryItem } from "../../utils/groupTripApi"; // Import the API function
+import { addPlaceToVisit } from "../../utils/groupTripApi"; // Import the API function
 
 export default function PlaceToVisitForm({ selectedTripId }) {
   const [name, setName] = useState("");
@@ -26,7 +26,7 @@ export default function PlaceToVisitForm({ selectedTripId }) {
     }
 
     try {
-      await addItineraryItem(selectedTripId, {
+      await addPlaceToVisit(selectedTripId, {
         name,
         date,
         location,

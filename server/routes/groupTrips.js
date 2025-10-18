@@ -30,7 +30,10 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB file size limit
+});
 
 // @route   POST api/groupTrips
 // @desc    Create a new group trip

@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useNavigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import LoginForm from "./components/Auth/LoginForm";
@@ -16,7 +17,7 @@ import HomePage from "./pages/HomePage"; // Assuming you have a HomePage compone
 import ExpensesPage from "./pages/ExpensesPage";
 import GroupTripsPage from "./pages/GroupTripsPage";
 import GroupTripDetailPage from "./pages/GroupTripDetailPage";
-import AddMemberForm from "./components/AddMemberForm"; // Import the new component
+import AddMemberForm from "./components/AddMemberForm"; // Re-import the AddMemberForm component
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -36,6 +37,8 @@ function PrivateRoute({ children }) {
 }
 
 function AuthenticatedApp() {
+  const navigate = useNavigate(); // Get the navigate function
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
@@ -47,7 +50,7 @@ function AuthenticatedApp() {
           <Route path="/profile" element={<ProfileView />} />
           <Route path="/expenses" element={<ExpensesPage />} />
           <Route path="/add-member" element={<AddMemberForm />} />{" "}
-          {/* New route for Add Member */}
+          {/* Route for Add Member as a full page */}
           <Route path="/group-trips" element={<GroupTripsPage />} />
           <Route path="/group-trips/:id" element={<GroupTripDetailPage />} />
           <Route path="*" element={<Navigate to="/" />} />

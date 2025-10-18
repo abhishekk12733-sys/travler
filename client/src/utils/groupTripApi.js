@@ -11,7 +11,7 @@ export const createGroupTrip = async (tripData) => {
 };
 
 // Add an itinerary item to a group trip
-export const addItineraryItem = async (tripId, itemData) => {
+export const addPlaceToVisit = async (tripId, itemData) => {
   try {
     const res = await api.post(`/groupTrips/${tripId}/itinerary`, itemData);
     return res.data;

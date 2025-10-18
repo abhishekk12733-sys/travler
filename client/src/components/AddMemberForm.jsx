@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import axios from "axios";
 import { X } from "lucide-react";
 
-export default function AddMemberForm({ onClose }) {
+export default function AddMemberForm() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [travelLogs, setTravelLogs] = useState([]);
@@ -51,6 +51,10 @@ export default function AddMemberForm({ onClose }) {
     }
   };
 
+  const handleCancel = () => {
+    navigate(-1); // Navigate back when cancel is clicked
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -87,7 +91,7 @@ export default function AddMemberForm({ onClose }) {
       setSelectedTrip("");
       setDescription("");
       setMemberEmail("");
-      if (onClose) onClose();
+      navigate(-1); // Navigate back after successful submission
     } catch (err) {
       console.error("Error adding member:", err.response?.data || err.message);
       setError(err.response?.data?.msg || "Error adding member.");
@@ -97,14 +101,8 @@ export default function AddMemberForm({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md relative">
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100 transition"
-        >
-          <X className="w-5 h-5 text-gray-600" />
-        </button>
+    <div className="container mx-auto p-4">
+      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-auto mt-10">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">
           Add Member to Trip
         </h2>
@@ -188,7 +186,7 @@ export default function AddMemberForm({ onClose }) {
             </button>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCancel}
               className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               disabled={loading}
             >

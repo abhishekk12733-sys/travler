@@ -11,11 +11,13 @@ import {
   Eye,
   UserPlus,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import TravelLogForm from "./TravelLogForm";
 import TravelLogDetail from "./TravelLogDetail";
 
 export default function TravelLogsList() {
   const { user } = useAuth();
+  const navigate = useNavigate(); // Initialize useNavigate
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -271,7 +273,7 @@ export default function TravelLogsList() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent card navigation
-                      window.location.href = `/travel-logs/${log._id}?addMember=true`;
+                      navigate(`/add-member`); // Redirect to the Add Member page
                     }}
                     className="flex items-center justify-center px-3 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition"
                     title="Add Member"
